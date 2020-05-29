@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./App.css";
 import ReactHtmlParser from "react-html-parser";
 import Timer from "./components/Timer";
-import sentences from "./sentences";
+import sentences from "./configs/sentences";
 
 function splitPara(paraText) {
   var paragraph = paraText.split(" ");
