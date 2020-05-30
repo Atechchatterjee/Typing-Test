@@ -2,6 +2,10 @@ import React, { useState, useEffect } from "react";
 import ReactHtmlParser from "react-html-parser";
 import Timer from "./components/Timer";
 import sentences from "./configs/sentences";
+import { Button, Form } from "react-bootstrap";
+import "bootstrap/dist/css/bootstrap.css";
+import "./App.css";
+import ReactSpeedometer from "react-d3-speedometer";
 
 function splitPara(paraText) {
   var paragraph = paraText.split(" ");
@@ -25,7 +29,6 @@ function getRandomNumber(ll, ul) {
 }
 
 function calculateSpeed(misspelledWords, totalNumberOfWords, time) {
-  console.log(misspelledWords, totalNumberOfWords, time);
   return Math.round(
     parseInt(parseInt(totalNumberOfWords) - parseInt(misspelledWords)) /
       (time / 60)
@@ -33,7 +36,6 @@ function calculateSpeed(misspelledWords, totalNumberOfWords, time) {
 }
 
 function calculateAccuracy(misspelledWords, totalNumberOfWords) {
-  console.log(misspelledWords, totalNumberOfWords);
   return Math.round(
     ((parseInt(totalNumberOfWords) - parseInt(misspelledWords)) /
       parseInt(totalNumberOfWords)) *
@@ -41,8 +43,17 @@ function calculateAccuracy(misspelledWords, totalNumberOfWords) {
   );
 }
 
+function formatTimer(time) {
+  var minutes = Math.floor(time / 60).toString();
+  var seconds = (time % 60).toString();
+  minutes = minutes < 10 ? "0" + minutes : minutes;
+  seconds = seconds < 10 ? "0" + seconds : seconds;
+  return minutes + ":" + seconds;
+}
+
 export default function App() {
-  const [para, ChangePara] = useState(
+  const delimeters = `,./|!~''""%$:;#*(){}[]?+@&-_’`;
+  const [para, changePara] = useState(
     sentences[getRandomNumber(0, sentences.length)]
   );
   const [typedText, changeTypedText] = useState("");
@@ -69,8 +80,7 @@ export default function App() {
   }
 
   useEffect(() => {
-    if (typing || endedTyping) {
-      console.log("Typing has ended");
+    if (typing) {
       updateTypingSpeed(
         calculateSpeed(misspelledWords.length, totalNumberOfWords, timeSpent)
       );
@@ -90,10 +100,12 @@ export default function App() {
       if (wordIndex > 1) {
         document.getElementById(wordIndex - 2).style.backgroundColor = "white";
       }
-      startedTyping(true);
+      if (!endedTyping) {
+        startedTyping(true);
+      }
       endTyping(false);
       if (keyCode == 32) {
-        console.log(text);
+        // hit space
         if (text.trim() == currentWord.substring(0, text.length)) {
           document.getElementById(wordIndex).style.color = "green";
         } else {
@@ -102,52 +114,96 @@ export default function App() {
         }
         changeWordIndex((wordIndex) => wordIndex + 2);
         clearInput();
-        console.log("cursor" + cursor);
         changeCursor(cursor + 1);
       } else {
-        console.log("current Word = " + currentWord);
         if (text !== currentWord.substring(0, text.length)) {
-          console.log("WRONG");
           document.getElementById(wordIndex).style.color = "red";
         } else {
           document.getElementById(wordIndex).style.color = "green";
         }
         changeTypedText(text);
+        if (
+          text.charAt(text.length - 1) ==
+            currentWord.charAt(currentWord.length - 1) &&
+          cursor == actualText.length - 1
+        ) {
+          startedTyping((typing) => false);
+          endTyping(true);
+        }
       }
-    }
-
-    if (cursor == actualText.length - 1) {
-      startedTyping((typing) => false);
-      endTyping(true);
     }
   }
 
+  function simplifyPara() {
+    var simplifiedPara = "";
+    for (var i = 0; i < para.length; i++)
+      if (delimeters.indexOf(para.charAt(i)) == -1)
+        simplifiedPara += para.charAt(i).toLowerCase();
+
+    changePara(simplifiedPara);
+    changeActualText(splitPara(simplifiedPara));
+    console.log(para);
+  }
+
   return (
-    <div className="App">
-      {actualText}
-      <input
-        id="type-box"
-        type="text"
-        value={typedText}
-        onChange={traceChange}
-        onKeyDown={traceKey}
-      />
-      <br></br>
-      <br></br>
-      Timer: &nbsp;
-      {typing ? (
-        <Timer
-          startTimer={typing}
-          callback={(spentTime) => {
-            updateTimeSpent(spentTime);
-            console.log("Time spent = " + spentTime);
-          }}
+    <>
+      <span className="Timer">
+        {typing ? (
+          <Timer
+            startTimer={typing}
+            callback={(spentTime) => {
+              updateTimeSpent(spentTime);
+              console.log("Time spent = " + spentTime);
+            }}
+          />
+        ) : (
+          <>{timeSpent == 0 ? "00:00" : formatTimer(timeSpent)}</>
+        )}
+      </span>
+      <div className="type-area">
+        {actualText}
+        <Form.Control
+          id="type-box"
+          type="text"
+          value={typedText}
+          onChange={traceChange}
+          onKeyDown={traceKey}
         />
-      ) : (
-        <>{timeSpent}</>
-      )}
-      <p>Speed: {typingSpeed} &nbsp; wpm</p>
-      <p>Accuracy: {accuracy}%</p>
-    </div>
+        <Button
+          variant="outline-primary"
+          className="simplify"
+          onClick={simplifyPara}
+        >
+          Simplify
+        </Button>{" "}
+      </div>
+      <br></br>
+      <br></br>
+      {/* <p>Speed: {typingSpeed == Infinity ? 0 : typingSpeed} &nbsp; wpm</p>
+      <p>Accuracy: {accuracy}%</p> */}
+      <div className="speedometers">
+        <ReactSpeedometer
+          minValue={0}
+          maxValue={300}
+          segments={1}
+          width={350}
+          ringWidth={25}
+          segmentColors={"grey"}
+          value={typingSpeed == Infinity || typingSpeed > 300 ? 0 : typingSpeed}
+          paddingHorizontal={250}
+        />
+        <span className="accuracy">
+          <ReactSpeedometer
+            minValue={0}
+            maxValue={100}
+            segments={1}
+            width={350}
+            ringWidth={25}
+            value={accuracy}
+            paddingVertical={5}
+          />
+        </span>
+      </div>
+    </>
   );
 }

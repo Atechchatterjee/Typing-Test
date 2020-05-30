@@ -4,21 +4,35 @@ export default class Timer extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      timer: 1,
+      minutes: 0,
+      seconds: 0,
       startTimer: props.startTimer,
     };
   }
   render() {
-    return <span>{this.state.timer}</span>;
+    const { minutes, seconds } = this.state;
+    return (
+      <span className="Timer">
+        {minutes < 10 ? "0" : ""}
+        {minutes}:{seconds < 10 ? "0" : ""}
+        {seconds}
+      </span>
+    );
   }
 
   componentDidMount() {
     if (this.state.startTimer) {
       this.time = setInterval(
         function () {
-          this.setState({
-            timer: this.state.timer + 1,
-          });
+          if (this.state.seconds == 59) {
+            this.setState({ minutes: this.state.minutes + 1 });
+            this.setState({ seconds: 0 });
+          } else {
+            this.setState({
+              seconds: this.state.seconds + 1,
+            });
+          }
+          this.props.callback(this.state.minutes * 60 + this.state.seconds);
         }.bind(this),
         1000
       );
@@ -26,6 +40,5 @@ export default class Timer extends Component {
   }
   componentWillUnmount() {
     clearInterval(this.time);
-    this.props.callback(this.state.timer);
   }
 }
