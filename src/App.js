@@ -53,9 +53,10 @@ function formatTimer(time) {
 
 export default function App() {
   const delimeters = `,./|!~''""%$:;#*(){}[]?+@&-_’`;
-  const [para, changePara] = useState(
-    sentences[getRandomNumber(0, sentences.length)]
+  const [randomSentenceNumber, changeNumber] = useState(
+    getRandomNumber(0, sentences.length)
   );
+  const [para, changePara] = useState(sentences[randomSentenceNumber]);
   const [typedText, changeTypedText] = useState("");
   const [actualText, changeActualText] = useState(splitPara(para));
   const [cursor, changeCursor] = useState(0);
@@ -70,6 +71,10 @@ export default function App() {
   );
   const [typingSpeed, updateTypingSpeed] = useState(0);
   const [accuracy, updateAccuracy] = useState(0);
+  const [simplified, changeSimplified] = useState(false);
+  const [currentColor, changeCurrentColor] = useState("");
+
+  const colors = ["#F7CB2C", "#48C92E", "#F26030"];
 
   function traceKey(event) {
     changeKeyCode(event.keyCode);
@@ -81,13 +86,14 @@ export default function App() {
 
   useEffect(() => {
     if (typing) {
+      console.log(misspelledWords);
       updateTypingSpeed(
         calculateSpeed(misspelledWords.length, totalNumberOfWords, timeSpent)
       );
-      updateAccuracy(
-        calculateAccuracy(misspelledWords.length, totalNumberOfWords)
-      );
     }
+    updateAccuracy(
+      calculateAccuracy(misspelledWords.length, totalNumberOfWords)
+    );
   });
 
   function traceChange(event) {
@@ -105,44 +111,48 @@ export default function App() {
       }
       endTyping(false);
       if (keyCode == 32) {
-        // hit space
+        // hit whitespace
+        if (cursor == actualText.length - 1) {
+          startedTyping((typing) => false);
+          endTyping(true);
+        }
         if (text.trim() == currentWord.substring(0, text.length)) {
           document.getElementById(wordIndex).style.color = "green";
         } else {
           document.getElementById(wordIndex).style.color = "red";
           addMisspelledWords([...misspelledWords, currentWord]);
+          console.log("WRONG : " + currentWord);
         }
         changeWordIndex((wordIndex) => wordIndex + 2);
         clearInput();
         changeCursor(cursor + 1);
       } else {
+        // checking while typing
         if (text !== currentWord.substring(0, text.length)) {
           document.getElementById(wordIndex).style.color = "red";
         } else {
           document.getElementById(wordIndex).style.color = "green";
         }
         changeTypedText(text);
-        if (
-          text.charAt(text.length - 1) ==
-            currentWord.charAt(currentWord.length - 1) &&
-          cursor == actualText.length - 1
-        ) {
-          startedTyping((typing) => false);
-          endTyping(true);
-        }
       }
     }
   }
 
   function simplifyPara() {
     var simplifiedPara = "";
-    for (var i = 0; i < para.length; i++)
-      if (delimeters.indexOf(para.charAt(i)) == -1)
-        simplifiedPara += para.charAt(i).toLowerCase();
+    if (!simplified) {
+      for (var i = 0; i < para.length; i++)
+        if (delimeters.indexOf(para.charAt(i)) == -1)
+          simplifiedPara += para.charAt(i).toLowerCase();
 
-    changePara(simplifiedPara);
-    changeActualText(splitPara(simplifiedPara));
-    console.log(para);
+      changePara(simplifiedPara);
+      changeActualText(splitPara(simplifiedPara));
+      changeSimplified(true);
+    } else {
+      changePara(sentences[randomSentenceNumber]);
+      changeActualText(splitPara(sentences[randomSentenceNumber]));
+      changeSimplified(false);
+    }
   }
 
   return (
@@ -174,22 +184,21 @@ export default function App() {
           className="simplify"
           onClick={simplifyPara}
         >
-          Simplify
+          {simplified ? "Simplified" : "Simplify"}
         </Button>{" "}
       </div>
       <br></br>
       <br></br>
-      {/* <p>Speed: {typingSpeed == Infinity ? 0 : typingSpeed} &nbsp; wpm</p>
-      <p>Accuracy: {accuracy}%</p> */}
       <div className="speedometers">
         <ReactSpeedometer
           minValue={0}
-          maxValue={300}
-          segments={1}
+          maxValue={220}
+          segments={3}
+          customSegmentStops={[0, 20, 60, 220]}
+          segmentColors={colors}
           width={350}
           ringWidth={25}
-          segmentColors={"grey"}
-          value={typingSpeed == Infinity || typingSpeed > 300 ? 0 : typingSpeed}
+          value={typingSpeed == Infinity || typingSpeed > 220 ? 0 : typingSpeed}
           paddingHorizontal={250}
         />
         <span className="accuracy">
