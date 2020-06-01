@@ -6,13 +6,17 @@ import { Button, Form } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.css";
 import "./App.css";
 import ReactSpeedometer from "react-d3-speedometer";
+import ReactLoading from "react-loading";
 
 function splitPara(paraText) {
   var paragraph = paraText.split(" ");
   paraText = "";
   var counter = 0;
   paragraph.forEach((word, index) => {
-    paraText += `<span id='${counter}'>` + word + `</span>`;
+    paraText +=
+      `<span id='${counter}' class='spans' style="color:black">` +
+      word +
+      `</span>`;
     paraText += `<span id='${counter + 1}'>` + `&nbsp;` + `</span>`;
     counter += 2;
   });
@@ -72,7 +76,8 @@ export default function App() {
   const [typingSpeed, updateTypingSpeed] = useState(0);
   const [accuracy, updateAccuracy] = useState(0);
   const [simplified, changeSimplified] = useState(false);
-  const [currentColor, changeCurrentColor] = useState("");
+  const [toRefreshPara, changeToRefreshPara] = useState(false);
+  const [toRenderText, changeToRenderText] = useState(false);
 
   const colors = ["#F7CB2C", "#48C92E", "#F26030"];
 
@@ -85,6 +90,41 @@ export default function App() {
   }
 
   useEffect(() => {
+    const time = setTimeout(() => {
+      changeToRenderText(true);
+    }, 1800);
+    return () => clearTimeout(time);
+  }, [toRenderText]);
+
+  useEffect(() => {
+    console.log(randomSentenceNumber);
+
+    if (toRefreshPara && !simplified) {
+      console.log("Changing the para");
+      (async () => {
+        await changeNumber(getRandomNumber(0, sentences.length));
+        await changePara(sentences[randomSentenceNumber]);
+        await changeActualText(<>...loading</>);
+        changeActualText(splitPara(sentences[randomSentenceNumber]));
+        changeTotalNumberOfWords(getNumberOfWords(para));
+        changeToRefreshPara(false);
+        updateTypingSpeed(0);
+        updateAccuracy(0);
+        startedTyping(false);
+        endTyping(false);
+        changeCursor(0);
+        addMisspelledWords([]);
+        updateTimeSpent(0);
+        changeWordIndex(0);
+        changeSimplified(false);
+        changeKeyCode(0);
+        changeToRenderText(false);
+      })();
+    }
+  }, [randomSentenceNumber, toRefreshPara, simplified]);
+
+  useEffect(() => {
+    console.log("Use EFFECT");
     if (typing) {
       console.log(misspelledWords);
       updateTypingSpeed(
@@ -94,14 +134,14 @@ export default function App() {
     updateAccuracy(
       calculateAccuracy(misspelledWords.length, totalNumberOfWords)
     );
-  });
+  }, [typing, misspelledWords, totalNumberOfWords, timeSpent]);
 
   function traceChange(event) {
     var text = event.target.value;
     var actualText = para.split(" ");
     var currentWord = actualText[cursor];
 
-    if (cursor < actualText.length && text !== " ") {
+    if (cursor < actualText.length && text !== " " && !toRefreshPara) {
       document.getElementById(wordIndex).style.backgroundColor = "#E2E2E2";
       if (wordIndex > 1) {
         document.getElementById(wordIndex - 2).style.backgroundColor = "white";
@@ -155,6 +195,33 @@ export default function App() {
     }
   }
 
+  function refreshPara() {
+    if (simplified) {
+      changeSimplified(false);
+    }
+    if (!toRefreshPara) {
+      changeToRefreshPara(true);
+    } else {
+      changeToRefreshPara(false);
+    }
+  }
+
+  function renderLoader() {
+    return (
+      <ReactLoading
+        type={"bars"}
+        color={"#FF6666"}
+        height={50}
+        width={30}
+        className={"loader"}
+      />
+    );
+  }
+
+  function renderText() {
+    return toRenderText ? actualText : renderLoader();
+  }
+
   return (
     <>
       <span className="Timer">
@@ -170,8 +237,9 @@ export default function App() {
           <>{timeSpent == 0 ? "00:00" : formatTimer(timeSpent)}</>
         )}
       </span>
+
       <div className="type-area">
-        {actualText}
+        {renderText()}
         <Form.Control
           id="type-box"
           type="text"
@@ -180,6 +248,13 @@ export default function App() {
           onKeyDown={traceKey}
         />
         <Button
+          variant="outline-success"
+          className="refreshPara"
+          onClick={refreshPara}
+        >
+          <i className="fa fa-refresh"></i>{" "}
+        </Button>{" "}
+        <Button
           variant="outline-primary"
           className="simplify"
           onClick={simplifyPara}
@@ -187,8 +262,10 @@ export default function App() {
           {simplified ? "Simplified" : "Simplify"}
         </Button>{" "}
       </div>
+
       <br></br>
       <br></br>
+
       <div className="speedometers">
         <ReactSpeedometer
           minValue={0}

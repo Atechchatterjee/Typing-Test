@@ -5,7 +5,7 @@
 
 #type-box {
   width: 30% !important;
-  margin-left: 34.5%;
+  margin-left: 30%;
   margin-top: 2%;
   float: left;
 }
@@ -30,10 +30,18 @@
   margin-left: 50%;
 }
 .simplify {
-  margin-left: 2% !important;
+  margin-left: 1% !important;
   margin-top: 2% !important;
   float: left;
 }
 .speedometers {
   margin-top: 5%;
+}
+.refreshPara {
+  margin-left: 1% !important;
+  margin-top: 2% !important;
+  float: left;
+}
+.loader {
+  margin-left: 45% !important;
 }
