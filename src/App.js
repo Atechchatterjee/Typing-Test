@@ -79,7 +79,7 @@ export default function App() {
   const [toRefreshPara, changeToRefreshPara] = useState(false);
   const [toRenderText, changeToRenderText] = useState(false);
 
-  const colors = ["#F7CB2C", "#48C92E", "#F26030"];
+  const colors = ["#F7CB2C", "#55CC6B", "#E07362"];
 
   function traceKey(event) {
     changeKeyCode(event.keyCode);
@@ -89,40 +89,41 @@ export default function App() {
     changeTypedText("");
   }
 
+  // for loader and rendering actualText
   useEffect(() => {
     const time = setTimeout(() => {
       changeToRenderText(true);
-    }, 1800);
+    }, 2000);
     return () => clearTimeout(time);
   }, [toRenderText]);
 
+  // for refresh-btn
   useEffect(() => {
-    console.log(randomSentenceNumber);
-
+    // resetting all the values
     if (toRefreshPara && !simplified) {
-      console.log("Changing the para");
       (async () => {
         await changeNumber(getRandomNumber(0, sentences.length));
-        await changePara(sentences[randomSentenceNumber]);
-        await changeActualText(<>...loading</>);
-        changeActualText(splitPara(sentences[randomSentenceNumber]));
-        changeTotalNumberOfWords(getNumberOfWords(para));
-        changeToRefreshPara(false);
-        updateTypingSpeed(0);
-        updateAccuracy(0);
-        startedTyping(false);
-        endTyping(false);
-        changeCursor(0);
-        addMisspelledWords([]);
-        updateTimeSpent(0);
-        changeWordIndex(0);
-        changeSimplified(false);
-        changeKeyCode(0);
-        changeToRenderText(false);
       })();
+      changePara(sentences[randomSentenceNumber]);
+      changeActualText(<>...loading</>);
+      changeActualText(splitPara(sentences[randomSentenceNumber]));
+      changeTotalNumberOfWords(getNumberOfWords(para));
+      changeToRefreshPara(false);
+      updateTypingSpeed(0);
+      updateAccuracy(0);
+      startedTyping(false);
+      endTyping(false);
+      changeCursor(0);
+      addMisspelledWords([]);
+      updateTimeSpent(0);
+      changeWordIndex(0);
+      changeSimplified(false);
+      changeKeyCode(0);
+      changeToRenderText(false);
     }
   }, [randomSentenceNumber, toRefreshPara, simplified]);
 
+  // for calculation of speed and accuracy
   useEffect(() => {
     console.log("Use EFFECT");
     if (typing) {
@@ -136,6 +137,7 @@ export default function App() {
     );
   }, [typing, misspelledWords, totalNumberOfWords, timeSpent]);
 
+  // main function for tracking the user's typing
   function traceChange(event) {
     var text = event.target.value;
     var actualText = para.split(" ");
@@ -178,6 +180,7 @@ export default function App() {
     }
   }
 
+  // removes delimeters and capitalisation
   function simplifyPara() {
     var simplifiedPara = "";
     if (!simplified) {
@@ -263,21 +266,21 @@ export default function App() {
         </Button>{" "}
       </div>
 
-      <br></br>
-      <br></br>
-
       <div className="speedometers">
-        <ReactSpeedometer
-          minValue={0}
-          maxValue={220}
-          segments={3}
-          customSegmentStops={[0, 20, 60, 220]}
-          segmentColors={colors}
-          width={350}
-          ringWidth={25}
-          value={typingSpeed == Infinity || typingSpeed > 220 ? 0 : typingSpeed}
-          paddingHorizontal={250}
-        />
+        <span className="typingSpeed">
+          <ReactSpeedometer
+            minValue={0}
+            maxValue={220}
+            segments={3}
+            customSegmentStops={[0, 20, 60, 220]}
+            segmentColors={colors}
+            width={350}
+            ringWidth={25}
+            value={
+              typingSpeed == Infinity || typingSpeed > 220 ? 0 : typingSpeed
+            }
+          />
+        </span>
         <span className="accuracy">
           <ReactSpeedometer
             minValue={0}
@@ -285,7 +288,9 @@ export default function App() {
             segments={1}
             width={350}
             ringWidth={25}
-            value={accuracy}
+            value={typingSpeed == 0 && accuracy == 100 ? "0" : accuracy}
+            segmentColors={["#6B83E0"]}
+            needleColor={"#E07362"}
             paddingVertical={5}
           />
         </span>

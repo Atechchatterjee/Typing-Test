@@ -29,13 +29,17 @@
   margin-top: -22%;
   margin-left: 50%;
 }
+.typingSpeed div {
+  margin-left: 20%;
+}
 .simplify {
   margin-left: 1% !important;
   margin-top: 2% !important;
   float: left;
 }
 .speedometers {
-  margin-top: 5%;
+  margin-top: 13%;
+  margin-left: 2%;
 }
 .refreshPara {
   margin-left: 1% !important;
