@@ -103,11 +103,9 @@ export default function App() {
     if (toRefreshPara && !simplified) {
       (async () => {
         await changeNumber(getRandomNumber(0, sentences.length));
+        await changePara(sentences[randomSentenceNumber]);
+        await changeTotalNumberOfWords(getNumberOfWords(para));
       })();
-      changePara(sentences[randomSentenceNumber]);
-      changeActualText(<>...loading</>);
-      changeActualText(splitPara(sentences[randomSentenceNumber]));
-      changeTotalNumberOfWords(getNumberOfWords(para));
       changeToRefreshPara(false);
       updateTypingSpeed(0);
       updateAccuracy(0);
