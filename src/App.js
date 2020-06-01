@@ -78,6 +78,11 @@ export default function App() {
   const [simplified, changeSimplified] = useState(false);
   const [toRefreshPara, changeToRefreshPara] = useState(false);
   const [toRenderText, changeToRenderText] = useState(false);
+  const [highestScore, changeHighestScore] = useState(
+    localStorage.getItem("highestScore") == null
+      ? 0
+      : localStorage.getItem("highestScore")
+  );
 
   const colors = ["#F7CB2C", "#55CC6B", "#E07362"];
 
@@ -122,19 +127,23 @@ export default function App() {
     }
   }, [randomSentenceNumber, toRefreshPara, simplified]);
 
-  useEffect(() => {
+  function setScoreColor() {
     // setting highestScore colors
+    var currentHighestScore = localStorage.getItem("highestScore");
     var scoreColor = "black";
-    if (typingSpeed > 20) {
+    if (currentHighestScore < 20) {
       scoreColor = colors[0];
-    } else if (typingSpeed >= 20 && typingSpeed < 60) {
+    } else if (currentHighestScore >= 20 && currentHighestScore < 60) {
       scoreColor = colors[1];
     } else {
       scoreColor = colors[2];
     }
     document.querySelector(".score").style.color = scoreColor;
     document.querySelector(".score").style.fontWeight = "bold";
+  }
 
+  useEffect(() => {
+    setScoreColor();
     // calculating speed and accuracy
     if (typing) {
       console.log(misspelledWords);
@@ -145,10 +154,15 @@ export default function App() {
     updateAccuracy(
       calculateAccuracy(misspelledWords.length, totalNumberOfWords)
     );
-    if (endedTyping) {
-      if (typingSpeed > localStorage.getItem("highestScore"))
-        localStorage.setItem("highestScore", typingSpeed);
-    }
+    (async () => {
+      if (endedTyping) {
+        if (typingSpeed > highestScore) {
+          localStorage.setItem("highestScore", typingSpeed);
+          await changeHighestScore(typingSpeed);
+          setScoreColor();
+        }
+      }
+    })();
   }, [typing, misspelledWords, totalNumberOfWords, timeSpent]);
 
   // main function for tracking the user's typing
@@ -244,9 +258,10 @@ export default function App() {
       <p className="highestScore">
         Highest Score:{" "}
         <span className="score">
-          {localStorage.getItem("highestScore") == null
+          {/* {localStorage.getItem("highestScore") == null
             ? "0"
-            : localStorage.getItem("highestScore")}{" "}
+            : localStorage.getItem("highestScore")}{" "} */}
+          {highestScore}
           wpm
         </span>
       </p>
