@@ -104,20 +104,21 @@ export default function App() {
       (async () => {
         await changeNumber(getRandomNumber(0, sentences.length));
         await changePara(sentences[randomSentenceNumber]);
+        await changeActualText(splitPara(sentences[randomSentenceNumber]));
         await changeTotalNumberOfWords(getNumberOfWords(para));
+        await changeToRefreshPara(false);
+        await updateTypingSpeed(0);
+        await updateAccuracy(0);
+        await startedTyping(false);
+        await endTyping(false);
+        await changeCursor(0);
+        await addMisspelledWords([]);
+        await updateTimeSpent(0);
+        await changeWordIndex(0);
+        await changeSimplified(false);
+        await changeKeyCode(0);
+        await changeToRenderText(false);
       })();
-      changeToRefreshPara(false);
-      updateTypingSpeed(0);
-      updateAccuracy(0);
-      startedTyping(false);
-      endTyping(false);
-      changeCursor(0);
-      addMisspelledWords([]);
-      updateTimeSpent(0);
-      changeWordIndex(0);
-      changeSimplified(false);
-      changeKeyCode(0);
-      changeToRenderText(false);
     }
   }, [randomSentenceNumber, toRefreshPara, simplified]);
 
