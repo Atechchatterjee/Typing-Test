@@ -244,7 +244,10 @@ export default function App() {
       <p className="highestScore">
         Highest Score:{" "}
         <span className="score">
-          {localStorage.getItem("highestScore")} wpm
+          {localStorage.getItem("highestScore") == null
+            ? "0"
+            : localStorage.getItem("highestScore")}{" "}
+          wpm
         </span>
       </p>
       <span className="Timer">
