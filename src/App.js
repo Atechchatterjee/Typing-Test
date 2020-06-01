@@ -122,9 +122,20 @@ export default function App() {
     }
   }, [randomSentenceNumber, toRefreshPara, simplified]);
 
-  // for calculation of speed and accuracy
   useEffect(() => {
-    console.log("Use EFFECT");
+    // setting highestScore colors
+    var scoreColor = "black";
+    if (typingSpeed > 20) {
+      scoreColor = colors[0];
+    } else if (typingSpeed >= 20 && typingSpeed < 60) {
+      scoreColor = colors[1];
+    } else {
+      scoreColor = colors[2];
+    }
+    document.querySelector(".score").style.color = scoreColor;
+    document.querySelector(".score").style.fontWeight = "bold";
+
+    // calculating speed and accuracy
     if (typing) {
       console.log(misspelledWords);
       updateTypingSpeed(
@@ -134,6 +145,10 @@ export default function App() {
     updateAccuracy(
       calculateAccuracy(misspelledWords.length, totalNumberOfWords)
     );
+    if (endedTyping) {
+      if (typingSpeed > localStorage.getItem("highestScore"))
+        localStorage.setItem("highestScore", typingSpeed);
+    }
   }, [typing, misspelledWords, totalNumberOfWords, timeSpent]);
 
   // main function for tracking the user's typing
@@ -226,6 +241,12 @@ export default function App() {
 
   return (
     <>
+      <p className="highestScore">
+        Highest Score:{" "}
+        <span className="score">
+          {localStorage.getItem("highestScore")} wpm
+        </span>
+      </p>
       <span className="Timer">
         {typing ? (
           <Timer
